@@ -1,0 +1,22 @@
+version: '3.7'
+services:
+  vault:
+    image: hashicorp/vault
+    container_name: vault
+    environment:
+      - VAULT_ADDR=https://vault.${DOMAIN}
+      - VAULT_DEV_ROOT_TOKEN_ID=*****
+    volumes:
+      - /opt/appdata/vault/logs:/vault/logs
+      - /opt/appdata/vault/file:/vault/file
+      - /opt/appdata/vault/config:/vault/config
+    cap_add:
+      - IPC_LOCK
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.vault.rule=Host(`vault.${DOMAIN}`)
+      - traefik.http.routers.vault-oidc.rule=Host(`vault.${DOMAIN}`) && PathPrefix(`/v1/identity/oidc/provider`)
+      - traefik.http.routers.vault-oidc.middlewares=no-cors@file
+    networks:
+      - shared_network
+    restart: always
